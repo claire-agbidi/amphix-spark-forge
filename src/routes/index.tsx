@@ -6,9 +6,9 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "Bootcamp Amphix 2026 — Apprendre, Construire, Innover" },
-      { name: "description", content: "3 semaines de formation intensive aux métiers du numérique. Web, IA, Design, Hackathon. Inscription : 5 000 FCFA." },
+      { name: "description", content: "4 semaines de formation intensive aux métiers du numérique. Web, IA, Design, Hackathon. Inscription : 5 000 FCFA." },
       { property: "og:title", content: "Bootcamp Amphix 2026" },
-      { property: "og:description", content: "3 semaines pour transformer vos idées en projets concrets. Inscription : 5 000 FCFA." },
+      { property: "og:description", content: "4 semaines pour transformer vos idées en projets concrets. Inscription : 5 000 FCFA." },
       { property: "og:image", content: heroImg },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -42,7 +42,7 @@ const benefits = [
   "Acquérir des compétences numériques recherchées",
   "Travailler sur des projets réels",
   "Développer votre portfolio",
-  "Rencontrer des professionnels du secteur",
+  "Rencontrer des nouvelles relations",
   "Rejoindre la communauté Amphix",
   "Gagner des prix et des opportunités",
 ];
@@ -260,7 +260,7 @@ function Index() {
                 </a>
               </div>
               <div className="mt-10 flex flex-wrap gap-6 text-sm text-muted-foreground">
-                <div className="transition-transform hover:scale-110"><span className="font-bold text-foreground text-2xl">3</span> semaines</div>
+                <div className="transition-transform hover:scale-110"><span className="font-bold text-foreground text-2xl">1</span> mois</div>
                 <div className="transition-transform hover:scale-110"><span className="font-bold text-foreground text-2xl">10+</span> modules</div>
                 <div className="transition-transform hover:scale-110"><span className="font-bold text-foreground text-2xl">90%</span> en ligne</div>
                 <div className="transition-transform hover:scale-110"><span className="font-bold text-foreground text-2xl">1</span> hackathon</div>
@@ -277,7 +277,7 @@ function Index() {
         <section className="mx-auto max-w-7xl px-6 py-20">
           <div className="grid md:grid-cols-4 gap-5">
             {[
-              { label: "Durée", value: "3 semaines", icon: "📅", grad: "bg-gradient-ocean" },
+              { label: "Durée", value: "4 semaines", icon: "📅", grad: "bg-gradient-ocean" },
               { label: "Mode", value: "90% en ligne", icon: "💻", grad: "bg-gradient-sun" },
               { label: "Clôture", value: "Hackathon + Cérémonie", icon: "🎉", grad: "bg-gradient-coral" },
               { label: "Inscription", value: "5 000 FCFA", icon: "🎟️", grad: "bg-gradient-ocean" },
@@ -298,13 +298,13 @@ function Index() {
         <section id="programme" className="mx-auto max-w-7xl px-6 py-20">
           <div className="text-center max-w-2xl mx-auto mb-14">
             <Reveal>
-              <Pill>💻 Semaines 1 & 2</Pill>
+              <Pill>💻 Semaines 1 & 3</Pill>
             </Reveal>
             <Reveal delay={100}>
               <h2 className="mt-5 font-display text-5xl font-bold">Formation intensive</h2>
             </Reveal>
             <Reveal delay={200}>
-              <p className="mt-4 text-lg text-muted-foreground">Deux semaines de pratique animées par des professionnels du secteur, à travers 10 modules essentiels.</p>
+              <p className="mt-4 text-lg text-muted-foreground">Trois semaines de pratique animées par des expérimentés du secteur, à travers 10 modules essentiels.</p>
             </Reveal>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -352,7 +352,7 @@ function Index() {
         {/* HACKATHON */}
         <section className="mx-auto max-w-7xl px-6 py-20">
           <div className="text-center max-w-2xl mx-auto mb-14">
-            <Reveal><Pill>🏆 Semaine 3</Pill></Reveal>
+            <Reveal><Pill>🏆 Semaine 4</Pill></Reveal>
             <Reveal delay={100}><h2 className="mt-5 font-display text-5xl font-bold">Mini-Hackathon Amphix</h2></Reveal>
             <Reveal delay={200}><p className="mt-4 text-lg text-muted-foreground">En équipes, concevez une solution innovante répondant à un problème réel.</p></Reveal>
           </div>
@@ -445,7 +445,7 @@ function Index() {
               <Reveal delay={0}>
                 <div className="rounded-2xl bg-card border border-border p-6 flex items-center gap-4 shadow-soft hover:shadow-pop hover:-translate-y-1 transition-all duration-300">
                   <span className="text-4xl">🏅</span>
-                  <div><div className="font-display text-xl font-bold">Prix du Public</div><div className="text-sm text-muted-foreground">Voté par les participants</div></div>
+                  <div><div className="font-display text-xl font-bold">Prix du Public</div><div className="text-sm text-muted-foreground">Pour tous les participants</div></div>
                 </div>
               </Reveal>
               <Reveal delay={100}>
@@ -488,7 +488,7 @@ function Index() {
                   🎯 Places limitées
                 </div>
                 <h2 className="mt-6 font-display text-5xl md:text-6xl font-bold leading-tight">Réservez votre place dès maintenant</h2>
-                <p className="mt-5 text-xl opacity-95">3 semaines · Innovation · Collaboration · Création</p>
+                <p className="mt-5 text-xl opacity-95">4 semaines · Innovation · Collaboration · Création</p>
                 <div className="mt-8 inline-flex flex-col sm:flex-row items-center gap-4">
                   <div className="rounded-2xl bg-white/15 backdrop-blur px-6 py-4 border border-white/20 hover:bg-white/25 transition-colors">
                     <div className="text-xs uppercase tracking-wider opacity-80">Inscription</div>
