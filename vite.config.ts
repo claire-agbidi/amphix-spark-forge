@@ -1,10 +1,10 @@
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
+import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
   tanstackStart: {
-    server: { entry: "server" },
+    server: { entry: "router" },
   },
-  // Surcharge du preset Nitro pour Vercel
   nitro: {
     preset: "vercel",
     output: {
@@ -13,4 +13,7 @@ export default defineConfig({
       publicDir: ".vercel/output/static",
     },
   },
-});
+  plugins: [
+    tsconfigPaths(),
+  ],
+} as any);

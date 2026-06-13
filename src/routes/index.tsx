@@ -28,13 +28,13 @@ const tracks = [
   { icon: "⚛️", title: "Frontend Moderne", items: ["React", "Consommation d'API", "Interfaces interactives"], color: "ocean" },
   { icon: "🔀", title: "Git & GitHub", items: ["Gestion de versions", "Collaboration", "Branches", "README pro"], color: "coral" },
   { icon: "🎨", title: "Design Graphique", items: ["Figma", "Canva", "Maquettage", "UI Design"], color: "sun" },
-  { icon: "🎬", title: "Montage Vidéo", items: ["Bases du montage", "Contenus numériques"], color: "ocean" },
+  { icon: "🎬", title: "Montage Vidéo", items: ["Bases du montage", "Motion Design", "Vidéos IA"], color: "ocean" },
   { icon: "🤖", title: "IA & Automatisation", items: ["Outils IA", "Automatisation", "Productivité"], color: "coral" },
   { icon: "📱", title: "UI/UX & Marketing", items: ["Psychologie du design", "UX", "Produits numériques"], color: "sun" },
   { icon: "👥", title: "Gestion de Projet", items: ["Collaboration", "Organisation", "Méthodes agiles"], color: "ocean" },
 ];
 
-const hackathonThemes = ["Éducation", "Santé", "Finance", "Vie étudiante", "IA", "Gestion d'entreprise", "Environnement", "Innovation numérique"];
+const hackathonThemes = ["Éducation", "Santé", "Business", "Société", "Environnement", "Numérique"];
 
 const criteria = ["Innovation", "Utilité du projet", "Qualité technique", "Design & UX", "Présentation finale", "Travail d'équipe"];
 
@@ -252,15 +252,16 @@ function Index() {
                 « Apprendre, Construire, Innover. » Transformez vos idées en projets concrets grâce à une immersion intensive dans les métiers du numérique.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
-                <a href="#inscription" className="rounded-full bg-gradient-ocean text-primary-foreground px-7 py-3.5 font-semibold shadow-pop hover:scale-105 transition active:scale-95">
-                  Réserver ma place 
-                </a>
+                <a href="/inscription" className="rounded-full bg-gradient-ocean text-primary-foreground px-7 py-3.5 font-semibold shadow-pop hover:scale-105 transition active:scale-95">
+  Réserver ma place 
+</a>
                 <a href="#programme" className="rounded-full bg-white text-foreground px-7 py-3.5 font-semibold border border-border hover:bg-muted transition active:scale-95">
                   Voir le programme
                 </a>
               </div>
               <div className="mt-10 flex flex-wrap gap-6 text-sm text-muted-foreground">
-                <div className="transition-transform hover:scale-110"><span className="font-bold text-foreground text-2xl">1</span> mois</div>
+                <div className="transition-transform hover:scale-110"><span className="font-bold text-foreground text-2xl">4</span> semaines
+                </div>
                 <div className="transition-transform hover:scale-110"><span className="font-bold text-foreground text-2xl">10+</span> modules</div>
                 <div className="transition-transform hover:scale-110"><span className="font-bold text-foreground text-2xl">90%</span> en ligne</div>
                 <div className="transition-transform hover:scale-110"><span className="font-bold text-foreground text-2xl">1</span> hackathon</div>
@@ -315,7 +316,6 @@ function Index() {
                     t.color === "ocean" ? "bg-gradient-ocean" : t.color === "coral" ? "bg-gradient-coral" : "bg-gradient-sun"
                   }`}>{t.icon}</div>
                   <h3 className="mt-4 font-display text-xl font-bold">{t.title}</h3>
-                  <p className="text-xs uppercase tracking-wider text-muted-foreground mt-1">Formateur · à définir</p>
                   <ul className="mt-4 space-y-1.5 text-sm text-muted-foreground">
                     {t.items.map((item) => <li key={item} className="flex gap-2"><span className="text-primary">›</span>{item}</li>)}
                   </ul>
