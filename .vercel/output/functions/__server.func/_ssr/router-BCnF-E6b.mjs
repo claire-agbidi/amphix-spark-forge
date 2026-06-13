@@ -118,8 +118,8 @@ function RootComponent() {
   const { queryClient } = Route$1.useRouteContext();
   return /* @__PURE__ */ jsxRuntimeExports.jsx(QueryClientProvider, { client: queryClient, children: /* @__PURE__ */ jsxRuntimeExports.jsx(Outlet, {}) });
 }
-const heroImg = "/assets/bootcamp-hero-BNWdwZ8J.jpg";
-const $$splitComponentImporter = () => import("./index-CKCvKj8C.mjs");
+const heroImg = "/assets/bootcamp-hero-CqKIUQL2.jpeg";
+const $$splitComponentImporter = () => import("./index-Ca7_TC5F.mjs");
 const Route = createFileRoute("/")({
   head: () => ({
     meta: [{

@@ -1,5 +1,5 @@
 import { r as reactExports, j as jsxRuntimeExports } from "../_libs/react.mjs";
-import { h as heroImg } from "./router-RMNGTH3T.mjs";
+import { h as heroImg } from "./router-BCnF-E6b.mjs";
 import "../_libs/tanstack__query-core.mjs";
 import "../_libs/tanstack__react-query.mjs";
 import "../_libs/tanstack__react-router.mjs";
@@ -230,7 +230,7 @@ function Index() {
             ] }),
             /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-6 text-xl text-muted-foreground max-w-xl", children: "« Apprendre, Construire, Innover. » Transformez vos idées en projets concrets grâce à une immersion intensive dans les métiers du numérique." }),
             /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-8 flex flex-wrap gap-3", children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx("a", { href: "#inscription", className: "rounded-full bg-gradient-ocean text-primary-foreground px-7 py-3.5 font-semibold shadow-pop hover:scale-105 transition active:scale-95", children: "Réserver ma place — 5 000 FCFA" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("a", { href: "#inscription", className: "rounded-full bg-gradient-ocean text-primary-foreground px-7 py-3.5 font-semibold shadow-pop hover:scale-105 transition active:scale-95", children: "Réserver ma place" }),
               /* @__PURE__ */ jsxRuntimeExports.jsx("a", { href: "#programme", className: "rounded-full bg-white text-foreground px-7 py-3.5 font-semibold border border-border hover:bg-muted transition active:scale-95", children: "Voir le programme" })
             ] }),
             /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-10 flex flex-wrap gap-6 text-sm text-muted-foreground", children: [
@@ -360,7 +360,7 @@ function Index() {
             t: "Remise des prix"
           }, {
             i: "📜",
-            t: "Certificats officiels"
+            t: "Certificats"
           }, {
             i: "🎮",
             t: "Jeux & animations"
@@ -375,7 +375,7 @@ function Index() {
             t: "Collation & repas"
           }, {
             i: "🤝",
-            t: "Networking pro"
+            t: "Networking"
           }].map((a, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(Reveal, { delay: i * 80, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "rounded-2xl bg-white/15 backdrop-blur p-5 border border-white/20 text-center hover:bg-white/25 hover:scale-105 transition-all duration-300", children: [
             /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-3xl", children: a.i }),
             /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-2 text-sm font-semibold", children: a.t })
@@ -396,15 +396,15 @@ function Index() {
           ] }),
           /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "grid md:grid-cols-3 gap-5 mb-5", children: [{
             medal: "🥇",
-            title: "Premier Prix",
+            title: "15 000 FCFA",
             g: "bg-gradient-sun"
           }, {
             medal: "🥈",
-            title: "Deuxième Prix",
+            title: "10 000 FCFA",
             g: "bg-gradient-ocean"
           }, {
             medal: "🥉",
-            title: "Troisième Prix",
+            title: "7 500 FCFA",
             g: "bg-gradient-coral"
           }].map((p, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(Reveal, { delay: i * 150, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `rounded-3xl ${p.g} p-8 text-center text-primary-foreground shadow-pop hover:scale-105 transition-transform duration-300`, style: {
             transform: i === 0 ? "scale(1.04)" : void 0
@@ -423,7 +423,7 @@ function Index() {
             /* @__PURE__ */ jsxRuntimeExports.jsx(Reveal, { delay: 100, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "rounded-2xl bg-card border border-border p-6 flex items-center gap-4 shadow-soft hover:shadow-pop hover:-translate-y-1 transition-all duration-300", children: [
               /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-4xl", children: "🎖️" }),
               /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "font-display text-xl font-bold", children: "Certificat officiel" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "font-display text-xl font-bold", children: "Certificat des participants" }),
                 /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-sm text-muted-foreground", children: "Pour tous les participants" })
               ] })
             ] }) })
