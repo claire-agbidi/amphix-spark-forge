@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import heroImg from "@/assets/bootcamp-hero.jpg";
+import heroImg from "@/assets/bootcamp-hero.jpeg";
 import { useEffect, useState, useRef } from "react";
 
 export const Route = createFileRoute("/")({
@@ -253,7 +253,7 @@ function Index() {
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <a href="#inscription" className="rounded-full bg-gradient-ocean text-primary-foreground px-7 py-3.5 font-semibold shadow-pop hover:scale-105 transition active:scale-95">
-                  Réserver ma place — 5 000 FCFA
+                  Réserver ma place 
                 </a>
                 <a href="#programme" className="rounded-full bg-white text-foreground px-7 py-3.5 font-semibold border border-border hover:bg-muted transition active:scale-95">
                   Voir le programme
@@ -398,12 +398,12 @@ function Index() {
               {[
                 { i: "🎤", t: "Présentation des projets" },
                 { i: "🏆", t: "Remise des prix" },
-                { i: "📜", t: "Certificats officiels" },
+                { i: "📜", t: "Certificats" },
                 { i: "🎮", t: "Jeux & animations" },
                 { i: "💃", t: "Ambiance & danse" },
                 { i: "📸", t: "Séance photo" },
                 { i: "🍽️", t: "Collation & repas" },
-                { i: "🤝", t: "Networking pro" },
+                { i: "🤝", t: "Networking" },
               ].map((a, i) => (
                 <Reveal key={a.t} delay={i * 80}>
                   <div className="rounded-2xl bg-white/15 backdrop-blur p-5 border border-white/20 text-center hover:bg-white/25 hover:scale-105 transition-all duration-300">
@@ -429,9 +429,9 @@ function Index() {
             </div>
             <div className="grid md:grid-cols-3 gap-5 mb-5">
               {[
-                { medal: "🥇", title: "Premier Prix", g: "bg-gradient-sun" },
-                { medal: "🥈", title: "Deuxième Prix", g: "bg-gradient-ocean" },
-                { medal: "🥉", title: "Troisième Prix", g: "bg-gradient-coral" },
+                { medal: "🥇", title: "15 000 FCFA", g: "bg-gradient-sun" },
+                { medal: "🥈", title: "10 000 FCFA", g: "bg-gradient-ocean" },
+                { medal: "🥉", title: "7 500 FCFA", g: "bg-gradient-coral" },
               ].map((p, i) => (
                 <Reveal key={p.title} delay={i * 150}>
                   <div className={`rounded-3xl ${p.g} p-8 text-center text-primary-foreground shadow-pop hover:scale-105 transition-transform duration-300`} style={{ transform: i === 0 ? "scale(1.04)" : undefined }}>
@@ -451,7 +451,7 @@ function Index() {
               <Reveal delay={100}>
                 <div className="rounded-2xl bg-card border border-border p-6 flex items-center gap-4 shadow-soft hover:shadow-pop hover:-translate-y-1 transition-all duration-300">
                   <span className="text-4xl">🎖️</span>
-                  <div><div className="font-display text-xl font-bold">Certificat officiel</div><div className="text-sm text-muted-foreground">Pour tous les participants</div></div>
+                  <div><div className="font-display text-xl font-bold">Certificat des participants</div><div className="text-sm text-muted-foreground">Pour tous les participants</div></div>
                 </div>
               </Reveal>
             </div>
