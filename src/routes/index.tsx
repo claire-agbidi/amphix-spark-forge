@@ -238,7 +238,7 @@ function Index() {
             <div className="flex items-center gap-2">
               <span className="font-display text-xl font-bold">Amphix</span>
             </div>
-            <a href="#inscription" className="rounded-full bg-foreground text-background px-5 py-2.5 text-sm font-semibold hover:opacity-90 transition hover:scale-105 active:scale-95">S'inscrire</a>
+            <a href="/connexion" className="rounded-full bg-foreground text-background px-5 py-2.5 text-sm font-semibold hover:opacity-90 transition hover:scale-105 active:scale-95">Connexion</a>
           </nav>
 
           <div className="relative z-10 mx-auto max-w-7xl px-6 pt-8 pb-20 grid lg:grid-cols-2 gap-12 items-center">

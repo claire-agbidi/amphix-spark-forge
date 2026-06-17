@@ -1,167 +1,505 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { supabase } from "@/lib/supabase";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export const Route = createFileRoute("/inscription")({
   head: () => ({
     meta: [
       { title: "Inscription — Bootcamp Amphix 2026" },
-      { name: "description", content: "Inscrivez-vous au Bootcamp Amphix 2026. 5 000 FCFA. Web, IA, Design, Hackathon." },
+      {
+        name: "description",
+        content:
+          "Inscrivez-vous au Bootcamp Amphix 2026. 5 000 FCFA. Web, IA, Design, Hackathon.",
+      },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" },
+      {
+        rel: "preconnect",
+        href: "https://fonts.gstatic.com",
+        crossOrigin: "anonymous",
+      },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap",
+      },
     ],
   }),
   component: InscriptionPage,
 });
 
-// ── Schéma de validation avec Zod ──
-const schema = z.object({
+// ── Schéma Zod étape 1 : infos personnelles ─────────────────────────────────
+const schemaInfos = z.object({
   nom: z.string().min(1, "Le nom est obligatoire"),
   prenoms: z.string().min(1, "Les prénoms sont obligatoires"),
-  whatsapp: z.string().min(1, "Le numéro WhatsApp est obligatoire"),
+  whatsapp: z
+    .string()
+    .min(1, "Le numéro WhatsApp est obligatoire")
+    .min(8, "Numéro trop court — ex : 01 46 24 45 49"),
   niveau_etudes: z.enum(["Collège", "Lycée", "Licence"], {
     errorMap: () => ({ message: "Veuillez sélectionner un niveau" }),
   }),
 });
 
-type FormData = z.infer<typeof schema>;
-
-// ── Helper pour formater le numéro WhatsApp ──
-const formatWhatsApp = (raw: string): string => {
-  const cleaned = raw.replace(/\s/g, "").replace(/^0+/, "");
-  if (cleaned.startsWith("+229")) return cleaned;
-  return `+229${cleaned.replace(/^\+/, "")}`;
-};
-
-function InscriptionPage() {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submittedData, setSubmittedData] = useState<FormData | null>(null);
-  const [serverError, setServerError] = useState("");
-
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm<FormData>({
-    resolver: zodResolver(schema),
+// ── Schéma Zod étape 2 : mot de passe ───────────────────────────────────────
+const schemaPassword = z
+  .object({
+    password: z
+      .string()
+      .min(8, "Minimum 8 caractères")
+      .regex(/[A-Z]/, "Au moins une majuscule")
+      .regex(/[0-9]/, "Au moins un chiffre")
+      .regex(/[^A-Za-z0-9]/, "Au moins un caractère spécial"),
+    confirmPassword: z.string().min(1, "Confirmez votre mot de passe"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Les mots de passe ne correspondent pas",
+    path: ["confirmPassword"],
   });
 
-  const onSubmit = async (data: FormData) => {
-    setIsSubmitting(true);
-    setServerError("");
+type FormDataInfos = z.infer<typeof schemaInfos>;
+type FormDataPassword = z.infer<typeof schemaPassword>;
 
-    const phone = formatWhatsApp(data.whatsapp);
+// ── Formate le numéro avant insertion ───────────────────────────────────────
+function formatWhatsApp(raw: string): string {
+  const cleaned = raw.replace(/[\s\-]/g, "").replace(/^0+/, "");
+  if (cleaned.startsWith("+229")) return cleaned;
+  return "+229" + cleaned.replace(/^\+/, "");
+}
 
-    try {
-      const { error } = await supabase.from("participants").insert({
+// ── Styles partagés ─────────────────────────────────────────────────────────
+const inputBase =
+  "w-full rounded-xl border bg-background text-sm px-4 py-3 outline-none transition-all duration-200 placeholder:text-muted-foreground/50";
+const inputNormal =
+  "border-border hover:border-primary/50 focus:border-primary focus:ring-2 focus:ring-primary/25";
+const inputError =
+  "border-red-400 bg-red-50/30 focus:border-red-400 focus:ring-2 focus:ring-red-300/30";
+
+// ── Indicateur de force du mot de passe ───────────────────────────────────
+function PasswordStrength({ password }: { password: string }) {
+  const checks = [
+    { label: "8 caractères", valid: password.length >= 8 },
+    { label: "Majuscule", valid: /[A-Z]/.test(password) },
+    { label: "Chiffre", valid: /[0-9]/.test(password) },
+    { label: "Spécial", valid: /[^A-Za-z0-9]/.test(password) },
+  ];
+
+  const strength = checks.filter((c) => c.valid).length;
+
+  return (
+    <div className="mt-3 space-y-2">
+      <div className="flex gap-1.5">
+        {checks.map((_, i) => (
+          <div
+            key={i}
+            className={[
+              "h-1.5 flex-1 rounded-full transition-all duration-300",
+              i < strength
+                ? strength <= 2
+                  ? "bg-red-400"
+                  : strength === 3
+                  ? "bg-yellow-400"
+                  : "bg-green-500"
+                : "bg-muted",
+            ].join(" ")}
+          />
+        ))}
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {checks.map((check) => (
+          <span
+            key={check.label}
+            className={[
+              "text-[10px] px-2 py-0.5 rounded-full font-medium transition-colors",
+              check.valid
+                ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                : "bg-muted text-muted-foreground",
+            ].join(" ")}
+          >
+            {check.valid ? "✓" : "○"} {check.label}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Page ────────────────────────────────────────────────────────────────────
+function InscriptionPage() {
+  const navigate = useNavigate();
+  const [step, setStep] = useState<"infos" | "password" | "success">("infos");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [serverError, setServerError] = useState("");
+  const [selectedNiveau, setSelectedNiveau] = useState<
+    "Collège" | "Lycée" | "Licence" | ""
+  >("");
+  const [pulseButton, setPulseButton] = useState(false);
+  const [savedData, setSavedData] = useState<FormDataInfos | null>(null);
+  const [participantId, setParticipantId] = useState<string | null>(null);
+
+  // ── Formulaire étape 1 : infos ─────────────────────────────────────────
+  const {
+    register: registerInfos,
+    handleSubmit: handleSubmitInfos,
+    setValue: setValueInfos,
+    watch: watchInfos,
+    formState: { errors: errorsInfos },
+  } = useForm<FormDataInfos>({
+    resolver: zodResolver(schemaInfos),
+    mode: "onTouched",
+  });
+
+  // ── Formulaire étape 2 : mot de passe ────────────────────────────────────
+  const {
+    register: registerPassword,
+    handleSubmit: handleSubmitPassword,
+    watch: watchPassword,
+    formState: { errors: errorsPassword },
+  } = useForm<FormDataPassword>({
+    resolver: zodResolver(schemaPassword),
+    mode: "onTouched",
+  });
+
+  const passwordValue = watchPassword("password") || "";
+
+  // ── Animation pulse quand le formulaire infos est rempli ─────────────────
+  const nomValue = watchInfos("nom");
+  const prenomsValue = watchInfos("prenoms");
+  const whatsappValue = watchInfos("whatsapp");
+
+  useEffect(() => {
+    const isFormFilled =
+      nomValue && prenomsValue && whatsappValue && selectedNiveau;
+    setPulseButton(Boolean(isFormFilled));
+  }, [nomValue, prenomsValue, whatsappValue, selectedNiveau]);
+
+  function handleNiveauClick(niveau: "Collège" | "Lycée" | "Licence") {
+    setSelectedNiveau(niveau);
+    setValueInfos("niveau_etudes", niveau, { shouldValidate: true });
+  }
+
+  // ── Étape 1 : soumission des infos ───────────────────────────────────────
+ async function onSubmitInfos(data: FormDataInfos) {
+  setIsSubmitting(true);
+  setServerError("");
+
+  try {
+    const { data: inserted, error } = await supabase
+      .from("participants")
+      .insert({
         nom: data.nom.trim(),
         prenoms: data.prenoms.trim(),
-        whatsapp: phone,
+        whatsapp: formatWhatsApp(data.whatsapp),
         niveau_etudes: data.niveau_etudes,
         paye: false,
         montant_paye: 0,
-      });
+      })
+      .select("id")
+      .single();
 
-      if (error) {
-        if (error.message.includes("duplicate") || error.message.includes("unique")) {
-          setServerError("Ce numéro WhatsApp est déjà inscrit.");
-        } else {
-          setServerError(error.message);
-        }
-        setIsSubmitting(false);
-        return;
+    if (error) {
+      if (
+        error.message.includes("duplicate") ||
+        error.message.includes("unique")
+      ) {
+        setServerError("Ce numéro WhatsApp est déjà inscrit.");
+      } else {
+        setServerError(error.message);
       }
-
-      // Succès
-      setSubmittedData(data);
-      reset(); // vide le formulaire
-    } catch {
-      setServerError("Une erreur est survenue. Veuillez réessayer.");
-    } finally {
-      setIsSubmitting(false);
+      return;
     }
-  };
 
-  // Si l'inscription est réussie, on affiche la confirmation
-  if (submittedData) {
+    setSavedData(data);
+    setParticipantId(inserted.id);
+    setStep("password");
+  } catch {
+    setServerError("Une erreur est survenue. Veuillez réessayer.");
+  } finally {
+    setIsSubmitting(false);
+  }
+}
+
+  // ── Étape 2 : création du mot de passe ───────────────────────────────────
+async function onSubmitPassword(data: FormDataPassword) {
+  setIsSubmitting(true);
+  setServerError("");
+
+  try {
+    // Hash simple côté client (à remplacer par bcrypt via Edge Function en prod)
+    const passwordHash = await hashPassword(data.password);
+
+    const { error: updateError } = await supabase
+      .from("participants")
+      .update({ password_hash: passwordHash })
+      .eq("id", participantId);
+
+    if (updateError) {
+      setServerError("Erreur lors de la sauvegarde du mot de passe.");
+      return;
+    }
+
+    setStep("success");
+
+    setTimeout(() => {
+window.location.href = "/dashboard";
+    }, 2000);
+  } catch {
+    setServerError("Erreur inattendue. Réessayez.");
+  } finally {
+    setIsSubmitting(false);
+  }
+}
+
+// Fonction de hash simple (à remplacer par bcrypt)
+async function hashPassword(password: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password + "amphix-salt-2026");
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+  // ── Étape 3 : écran de succès ────────────────────────────────────────────
+  if (step === "success") {
     return (
       <main className="min-h-screen bg-background flex items-center justify-center p-6">
         <div className="max-w-lg w-full rounded-3xl bg-card border border-border shadow-soft p-8 md:p-12 text-center">
           <div className="text-6xl mb-6 animate-bounce">🎉</div>
-          <h2 className="font-display text-3xl font-bold text-primary">Inscription réussie !</h2>
+          <h2 className="font-display text-3xl font-bold text-primary">
+            Compte créé avec succès !
+          </h2>
           <p className="mt-4 text-muted-foreground">
-            Merci <strong>{submittedData.nom}</strong> ! Nous vous contacterons bientôt sur WhatsApp pour finaliser votre inscription.
+            Bienvenue <strong>{savedData?.nom}</strong> ! Votre compte est prêt.
           </p>
-          <div className="mt-8 rounded-2xl bg-gradient-ocean/10 border border-primary/20 p-6">
-            <p className="text-sm text-muted-foreground mb-2">Montant à payer</p>
-            <p className="font-display text-4xl font-bold text-primary">5 000 FCFA</p>
-            <p className="mt-2 text-xs text-muted-foreground">Via WhatsApp ou mobile money</p>
+          
+          <div className="mt-6 rounded-2xl bg-gradient-ocean/10 border border-primary/20 p-6">
+            <p className="text-sm text-muted-foreground mb-2">Redirection dans quelques secondes...</p>
+            <div className="w-full bg-muted rounded-full h-2 mt-2 overflow-hidden">
+              <div className="h-full bg-primary rounded-full animate-[shrink_2s_linear_forwards]" style={{ width: "100%" }} />
+            </div>
           </div>
-          <a
-            href="/"
-            className="mt-8 inline-block rounded-full bg-foreground text-background px-8 py-3 font-semibold hover:opacity-90 transition"
+
+          <Link
+            to="/dashboard"
+            className="mt-8 inline-block rounded-full bg-foreground text-background px-8 py-3 font-semibold hover:opacity-90 transition hover:scale-105 active:scale-95"
           >
-            Retour à l'accueil
-          </a>
+            Aller au Dashboard →
+          </Link>
         </div>
       </main>
     );
   }
 
+  // ── Étape 2 : création mot de passe ────────────────────────────────────────
+  if (step === "password") {
+    return (
+      <main className="min-h-screen bg-background overflow-x-hidden">
+        {/* Header minimal */}
+        <nav className="mx-auto max-w-7xl px-6 py-6">
+          <Link to="/" className="font-display text-xl font-bold hover:scale-105 transition-transform inline-block">
+            Amphix
+          </Link>
+        </nav>
+
+        <section className="mx-auto max-w-2xl px-6 py-12">
+          <div className="rounded-3xl bg-card border border-border shadow-soft p-8 md:p-12">
+            {/* Indicateur d'étape */}
+            <div className="flex items-center justify-center gap-2 mb-8">
+              <div className="w-8 h-8 rounded-full bg-muted text-muted-foreground flex items-center justify-center text-sm font-bold">1</div>
+              <div className="w-12 h-0.5 bg-primary" />
+              <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold animate-pulse">2</div>
+            </div>
+
+            <div className="text-center mb-10">
+              <h2 className="font-display text-2xl font-bold">
+                Sécurisez votre compte
+              </h2>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Créez un mot de passe fort pour accéder à votre espace
+              </p>
+            </div>
+
+            {serverError && (
+              <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600 text-center mb-6 animate-pulse">
+                {serverError}
+              </div>
+            )}
+
+            <form
+              onSubmit={handleSubmitPassword(onSubmitPassword)}
+              className="space-y-6"
+              noValidate
+            >
+              {/* Mot de passe */}
+              <div>
+                <label
+                  htmlFor="password"
+                  className="block text-sm font-semibold mb-2"
+                >
+                  Mot de passe
+                </label>
+                <input
+                  id="password"
+                  type="password"
+                  placeholder="••••••••"
+                  {...registerPassword("password")}
+                  className={`${inputBase} ${errorsPassword.password ? inputError : inputNormal}`}
+                />
+                <PasswordStrength password={passwordValue} />
+                {errorsPassword.password && (
+                  <p className="mt-1.5 text-xs text-red-500 animate-fade-in">
+                    {errorsPassword.password.message}
+                  </p>
+                )}
+              </div>
+
+              {/* Confirmation */}
+              <div>
+                <label
+                  htmlFor="confirmPassword"
+                  className="block text-sm font-semibold mb-2"
+                >
+                  Confirmer le mot de passe
+                </label>
+                <input
+                  id="confirmPassword"
+                  type="password"
+                  placeholder="••••••••"
+                  {...registerPassword("confirmPassword")}
+                  className={`${inputBase} ${errorsPassword.confirmPassword ? inputError : inputNormal}`}
+                />
+                {errorsPassword.confirmPassword && (
+                  <p className="mt-1.5 text-xs text-red-500 animate-fade-in">
+                    {errorsPassword.confirmPassword.message}
+                  </p>
+                )}
+              </div>
+
+              {/* Bouton */}
+              <div className="relative">
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className={[
+                    "relative w-full rounded-full px-8 py-4 font-bold text-lg flex items-center justify-center gap-2 transition-all duration-300",
+                    "shadow-lg hover:shadow-xl hover:-translate-y-1 active:translate-y-0 active:scale-[0.98]",
+                    isSubmitting
+                      ? "bg-muted text-muted-foreground cursor-not-allowed"
+                      : "bg-gradient-ocean text-primary-foreground hover:brightness-110",
+                  ].join(" ")}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                          fill="none"
+                        />
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        />
+                      </svg>
+                      Création du compte…
+                    </>
+                  ) : (
+                    <>
+                      Créer mon compte
+                      <span className="animate-pulse">🔒</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
+  // ── Étape 1 : formulaire infos (inchangé visuellement) ───────────────────
   return (
     <main className="min-h-screen bg-background overflow-x-hidden">
-      {/* HEADER (identique pour la cohérence visuelle) */}
+      {/* HERO */}
       <section className="relative bg-gradient-hero overflow-hidden">
-        <div className="absolute inset-0 opacity-30 pointer-events-none" style={{ backgroundImage: "radial-gradient(circle at 20% 30%, oklch(0.62 0.18 240 / 0.2), transparent 40%), radial-gradient(circle at 80% 70%, oklch(0.68 0.2 25 / 0.2), transparent 40%)" }} />
+        <div
+          className="absolute inset-0 opacity-30 pointer-events-none"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle at 20% 30%, oklch(0.62 0.18 240 / 0.2), transparent 40%), radial-gradient(circle at 80% 70%, oklch(0.68 0.2 25 / 0.2), transparent 40%)",
+          }}
+        />
         <div className="absolute top-20 left-[10%] w-32 h-32 rounded-full bg-sky-400/20 blur-3xl" />
         <div className="absolute top-40 right-[15%] w-40 h-40 rounded-full bg-orange-400/20 blur-3xl" />
 
         <nav className="relative z-10 mx-auto max-w-7xl px-6 py-6 flex items-center justify-between">
-          <a href="/" className="flex items-center gap-2">
-            <span className="font-display text-xl font-bold">Amphix</span>
-          </a>
-          <a href="/" className="rounded-full bg-white text-foreground px-5 py-2.5 text-sm font-semibold border border-border hover:bg-muted transition">
+          <Link to="/" className="font-display text-xl font-bold hover:scale-105 transition-transform inline-block">
+            Amphix
+          </Link>
+          <Link
+            to="/"
+            className="rounded-full bg-white text-foreground px-5 py-2.5 text-sm font-semibold border border-border hover:bg-muted transition hover:shadow-md hover:-translate-y-0.5 active:translate-y-0"
+          >
             Retour à l'accueil
-          </a>
+          </Link>
         </nav>
 
         <div className="relative z-10 mx-auto max-w-7xl px-6 pt-8 pb-20 text-center">
           <span className="inline-flex items-center rounded-full bg-white/80 backdrop-blur px-4 py-1.5 text-sm font-semibold text-foreground border border-border shadow-soft">
             🚀 Bootcamp Amphix 2026
           </span>
-          <h1 className="mt-6 font-display text-5xl md:text-6xl lg:text-7xl font-bold leading-[0.95] text-balance">
-            <span className="text-primary">Inscri</span><span className="text-secondary">ption</span>
+          <h1 className="mt-6 font-display text-5xl md:text-6xl lg:text-7xl font-bold leading-[0.95]">
+            <span className="text-primary">Inscri</span>
+            <span className="text-secondary">ption</span>
           </h1>
           <p className="mt-6 text-xl text-muted-foreground max-w-xl mx-auto">
-            Rejoignez la 1ère édition du Bootcamp Amphix. 4 semaines pour transformer vos idées en projets concrets.
+            Rejoignez la 1ère édition du Bootcamp Amphix. 4 semaines pour
+            transformer vos idées en projets concrets.
           </p>
         </div>
       </section>
 
-      {/* FORMULAIRE */}
+      {/* FORMULAIRE ÉTAPE 1 */}
       <section className="mx-auto max-w-2xl px-6 py-20">
         <div className="rounded-3xl bg-card border border-border shadow-soft p-8 md:p-12">
-          <div className="text-center mb-8">
-            <h2 className="font-display text-2xl font-bold">Vos informations</h2>
-            <p className="mt-2 text-sm text-muted-foreground">Tous les champs sont obligatoires</p>
+          {/* Indicateur d'étape */}
+          <div className="flex items-center justify-center gap-2 mb-8">
+            <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold animate-pulse">1</div>
+            <div className="w-12 h-0.5 bg-muted" />
+            <div className="w-8 h-8 rounded-full bg-muted text-muted-foreground flex items-center justify-center text-sm font-bold">2</div>
+          </div>
+
+          <div className="text-center mb-10">
+            <h2 className="font-display text-2xl font-bold">
+              Vos informations
+            </h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Tous les champs sont obligatoires
+            </p>
           </div>
 
           {serverError && (
-            <div className="rounded-xl bg-red-500/10 border border-red-500/20 p-4 text-sm text-red-600 text-center mb-6">
+            <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600 text-center mb-6 animate-pulse">
               {serverError}
             </div>
           )}
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
+          <form
+            onSubmit={handleSubmitInfos(onSubmitInfos)}
+            className="space-y-6"
+            noValidate
+          >
+            {/* Nom + Prénoms */}
             <div className="grid md:grid-cols-2 gap-5">
-              {/* Nom */}
               <div>
                 <label htmlFor="nom" className="block text-sm font-semibold mb-2">
                   Nom
@@ -169,17 +507,17 @@ function InscriptionPage() {
                 <input
                   id="nom"
                   type="text"
-                  {...register("nom")}
-                  placeholder="Ex: Koffi"
-                  className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition"
-                  aria-invalid={errors.nom ? "true" : "false"}
+                  placeholder="Ex : DJADJO"
+                  {...registerInfos("nom")}
+                  className={`${inputBase} ${errorsInfos.nom ? inputError : inputNormal}`}
                 />
-                {errors.nom && (
-                  <p className="mt-1 text-xs text-red-500">{errors.nom.message}</p>
+                {errorsInfos.nom && (
+                  <p className="mt-1.5 text-xs text-red-500 animate-fade-in">
+                    {errorsInfos.nom.message}
+                  </p>
                 )}
               </div>
 
-              {/* Prénoms */}
               <div>
                 <label htmlFor="prenoms" className="block text-sm font-semibold mb-2">
                   Prénoms
@@ -187,13 +525,14 @@ function InscriptionPage() {
                 <input
                   id="prenoms"
                   type="text"
-                  {...register("prenoms")}
-                  placeholder="Ex: Jean Marie"
-                  className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition"
-                  aria-invalid={errors.prenoms ? "true" : "false"}
+                  placeholder="Ex : Adorée"
+                  {...registerInfos("prenoms")}
+                  className={`${inputBase} ${errorsInfos.prenoms ? inputError : inputNormal}`}
                 />
-                {errors.prenoms && (
-                  <p className="mt-1 text-xs text-red-500">{errors.prenoms.message}</p>
+                {errorsInfos.prenoms && (
+                  <p className="mt-1.5 text-xs text-red-500 animate-fade-in">
+                    {errorsInfos.prenoms.message}
+                  </p>
                 )}
               </div>
             </div>
@@ -203,74 +542,125 @@ function InscriptionPage() {
               <label htmlFor="whatsapp" className="block text-sm font-semibold mb-2">
                 Numéro WhatsApp
               </label>
-              <input
-                id="whatsapp"
-                type="tel"
-                {...register("whatsapp")}
-                placeholder="Ex: 46244549 ou +229 46 24 45 49"
-                className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition"
-                aria-invalid={errors.whatsapp ? "true" : "false"}
-              />
-              <p className="mt-1 text-xs text-muted-foreground">Format: 46244549 ou +229 46 24 45 49</p>
-              {errors.whatsapp && (
-                <p className="mt-1 text-xs text-red-500">{errors.whatsapp.message}</p>
+              <div
+                className={[
+                  "flex items-center rounded-xl border overflow-hidden transition-all duration-200",
+                  "focus-within:ring-2",
+                  errorsInfos.whatsapp
+                    ? "border-red-400 bg-red-50/30 focus-within:ring-red-300/30"
+                    : "border-border hover:border-primary/50 focus-within:border-primary focus-within:ring-primary/25",
+                ].join(" ")}
+              >
+                <div className="flex items-center gap-1.5 px-3 py-3 border-r border-inherit bg-muted/40 shrink-0 select-none pointer-events-none">
+                  <span className="text-base leading-none">🇧🇯</span>
+                  <span className="text-sm font-semibold text-foreground">+229</span>
+                </div>
+                <input
+                  id="whatsapp"
+                  type="tel"
+                  placeholder="01 46 24 45 49"
+                  {...registerInfos("whatsapp")}
+                  className="flex-1 bg-transparent text-sm px-3 py-3 outline-none placeholder:text-muted-foreground/50"
+                />
+              </div>
+              {errorsInfos.whatsapp ? (
+                <p className="mt-1.5 text-xs text-red-500 animate-fade-in">
+                  {errorsInfos.whatsapp.message}
+                </p>
+              ) : (
+                <p className="mt-1.5 text-xs text-muted-foreground">
+                  Format : 8 chiffres minimum
+                </p>
               )}
             </div>
 
-            {/* Niveau d’études */}
-            <fieldset>
-              <legend className="block text-sm font-semibold mb-2">
-                Niveau d'études
-              </legend>
+            {/* Niveau d'études */}
+            <div>
+              <p className="text-sm font-semibold mb-3">Niveau d'études</p>
               <div className="grid grid-cols-3 gap-3">
-                {(["Collège", "Lycée", "Licence"] as const).map((niveau) => (
-                  <label
-                    key={niveau}
-                    className={`rounded-xl border px-4 py-3 text-sm font-medium text-center cursor-pointer transition-all duration-200 ${
-                      // react-hook-form ne fournit pas directement l'état "checked", mais on peut utiliser un petit état local ou simplement se fier au style de l'input radio.
-                      // Ici, on utilise l'attribut "checked" via le register, mais visuellement c'est l'input qui est caché.
-                      "border-border bg-background text-muted-foreground hover:border-primary/50 hover:bg-muted has-[:checked]:border-primary has-[:checked]:bg-primary/10 has-[:checked]:text-primary has-[:checked]:shadow-sm"
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      value={niveau}
-                      {...register("niveau_etudes")}
-                      className="sr-only"
-                    />
-                    {niveau}
-                  </label>
-                ))}
+                {(["Collège", "Lycée", "Licence"] as const).map((niveau) => {
+                  const active = selectedNiveau === niveau;
+                  return (
+                    <button
+                      key={niveau}
+                      type="button"
+                      onClick={() => handleNiveauClick(niveau)}
+                      className={[
+                        "relative rounded-xl border px-4 py-3.5 text-sm font-medium transition-all duration-200 select-none overflow-hidden",
+                        "hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 active:scale-95",
+                        active
+                          ? "border-primary bg-primary/10 text-primary shadow-md ring-2 ring-primary/30 scale-[1.02]"
+                          : "border-border bg-background text-muted-foreground hover:border-primary/60 hover:bg-primary/5",
+                      ].join(" ")}
+                    >
+                      {active && (
+                        <span className="absolute top-1.5 right-2 text-primary text-[10px] font-bold animate-bounce">
+                          ✓
+                        </span>
+                      )}
+                      {!active && (
+                        <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-muted-foreground/20" />
+                      )}
+                      <span className="relative z-10">{niveau}</span>
+                    </button>
+                  );
+                })}
               </div>
-              {errors.niveau_etudes && (
-                <p className="mt-1 text-xs text-red-500">{errors.niveau_etudes.message}</p>
+              <input type="hidden" {...registerInfos("niveau_etudes")} />
+              {errorsInfos.niveau_etudes && (
+                <p className="mt-2 text-xs text-red-500 animate-fade-in">
+                  {errorsInfos.niveau_etudes.message}
+                </p>
               )}
-            </fieldset>
+            </div>
 
             {/* Frais */}
             <div className="rounded-2xl bg-gradient-ocean/10 border border-primary/20 p-6 text-center">
-              <p className="text-sm text-muted-foreground mb-1">Frais d'inscription</p>
-              <p className="font-display text-3xl font-bold text-primary">5 000 FCFA</p>
-              <p className="mt-1 text-xs text-muted-foreground">À payer après inscription via WhatsApp</p>
+              <p className="text-sm text-muted-foreground mb-1">
+                Frais d'inscription
+              </p>
+              <p className="font-display text-3xl font-bold text-primary">
+                5 000 FCFA
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                À payer après inscription via WhatsApp
+              </p>
             </div>
 
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full rounded-full bg-gradient-ocean text-primary-foreground px-8 py-4 font-bold text-lg shadow-pop hover:scale-[1.02] transition active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              {isSubmitting ? (
-                <>
-                  <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                  </svg>
-                  Inscription en cours...
-                </>
-              ) : (
-                "Je m'inscris au Bootcamp 🚀"
+            {/* Bouton */}
+            <div className="relative">
+              {pulseButton && (
+                <div className="absolute -inset-1 bg-gradient-to-r from-primary via-secondary to-primary rounded-full blur opacity-30 animate-pulse" />
               )}
-            </button>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className={[
+                  "relative w-full rounded-full px-8 py-4 font-bold text-lg flex items-center justify-center gap-2 transition-all duration-300",
+                  "shadow-lg hover:shadow-xl hover:-translate-y-1 active:translate-y-0 active:scale-[0.98]",
+                  isSubmitting
+                    ? "bg-muted text-muted-foreground cursor-not-allowed"
+                    : "bg-gradient-ocean text-primary-foreground hover:brightness-110",
+                  pulseButton && !isSubmitting ? "animate-pulse ring-4 ring-primary/20" : "",
+                ].join(" ")}
+              >
+                {isSubmitting ? (
+                  <>
+                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Inscription en cours…
+                  </>
+                ) : (
+                  <>
+                    <span className="animate-bounce inline-block">🚀</span>
+                    Continuer
+                    <span className="animate-pulse">→</span>
+                  </>
+                )}
+              </button>
+            </div>
 
             <p className="text-center text-xs text-muted-foreground">
               En vous inscrivant, vous acceptez de rejoindre le Bootcamp Amphix 2026.
@@ -287,18 +677,30 @@ function InscriptionPage() {
             { icon: "💻", label: "Mode", value: "90% en ligne" },
             { icon: "🎟️", label: "Inscription", value: "5 000 FCFA" },
           ].map((c) => (
-            <div key={c.label} className="rounded-2xl bg-card p-6 shadow-soft border border-border text-center hover:shadow-pop hover:-translate-y-1 transition-all duration-300">
-              <div className="text-3xl mb-2">{c.icon}</div>
-              <div className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">{c.label}</div>
-              <div className="mt-1 font-display text-xl font-bold">{c.value}</div>
+            <div
+              key={c.label}
+              className="rounded-2xl bg-card p-6 shadow-soft border border-border text-center hover:shadow-pop hover:-translate-y-1 transition-all duration-300 cursor-pointer active:scale-95"
+            >
+              <div className="text-3xl mb-2 animate-bounce">{c.icon}</div>
+              <div className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
+                {c.label}
+              </div>
+              <div className="mt-1 font-display text-xl font-bold">
+                {c.value}
+              </div>
             </div>
           ))}
         </div>
       </section>
 
+      {/* FOOTER */}
       <footer className="border-t border-border py-10">
         <div className="mx-auto max-w-7xl px-6 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
-          <div className="flex items-center gap-2"><span>🚀</span><span className="font-display font-bold text-foreground">Amphix</span> · Bootcamp 2026</div>
+          <div className="flex items-center gap-2">
+            <span>🚀</span>
+            <span className="font-display font-bold text-foreground">Amphix</span>{" "}
+            · Bootcamp 2026
+          </div>
           <div>« Apprendre, Construire, Innover »</div>
         </div>
       </footer>
